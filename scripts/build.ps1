@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [string]$Input = "examples/Compass_智能竞品分析平台.md",
+    [string]$Input = "",
 
     [string]$OutputDir = "dist",
 
@@ -11,6 +11,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+$OutputEncoding = [Console]::OutputEncoding
+$env:PYTHONUTF8 = "1"
 $Root = Split-Path -Parent $PSScriptRoot
 
 function Resolve-ProjectPath([string]$PathValue) {
@@ -22,42 +25,58 @@ function Resolve-ProjectPath([string]$PathValue) {
 
 function Require-Command([string]$Name, [string]$Help) {
     if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
-        throw "$Name 未安装。$Help"
+        throw "$Name is not installed. $Help"
     }
 }
 
-Require-Command "python" "请先运行 scripts/install.ps1。"
-Require-Command "pandoc" "请先运行 scripts/install.ps1。"
+function Get-FeishuSuffix {
+    return -join ([char[]](0x005f, 0x98de, 0x4e66, 0x5bfc, 0x5165, 0x7248))
+}
 
-$InputPath = Resolve-ProjectPath $Input
+function Get-DefaultInput {
+    $ExampleDir = Join-Path $Root "examples"
+    $Files = Get-ChildItem -Path $ExampleDir -Filter *.md -File | Sort-Object Name
+    if ($Files.Count -eq 0) {
+        throw "No Markdown file found in examples."
+    }
+    return $Files[0].FullName
+}
+
+Require-Command "python" "Run scripts/install.ps1 first."
+Require-Command "pandoc" "Run scripts/install.ps1 first."
+
+$InputPath = if ([string]::IsNullOrWhiteSpace($Input)) { Get-DefaultInput } else { Resolve-ProjectPath $Input }
 $OutputPath = Resolve-ProjectPath $OutputDir
 $ConfigPath = Join-Path $Root "config/pipeline.json"
 $TemplatePath = Join-Path $Root "templates/compass-feishu-reference.docx"
 
 if (-not (Test-Path $InputPath)) {
-    throw "找不到 Markdown 文件：$InputPath"
+    throw "Markdown file not found: $InputPath"
 }
 New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $Root ".tmp") | Out-Null
 
+$Config = Get-Content -Raw -Encoding UTF8 $ConfigPath | ConvertFrom-Json
+$MaxColumns = [int]$Config.tables.max_columns_recommended
+
 if ($RebuildTemplate -or -not (Test-Path $TemplatePath)) {
-    Write-Host "[1/4] 生成 DOCX 模板..." -ForegroundColor Cyan
+    Write-Host "[1/4] Creating DOCX template..." -ForegroundColor Cyan
     python (Join-Path $PSScriptRoot "create_template.py") --config $ConfigPath --output $TemplatePath
 }
 
 if (-not $SkipValidation) {
-    Write-Host "[2/4] 校验 Markdown 与图片路径..." -ForegroundColor Cyan
-    python (Join-Path $PSScriptRoot "validate_markdown.py") $InputPath --max-columns 5
+    Write-Host "[2/4] Validating Markdown and image paths..." -ForegroundColor Cyan
+    python (Join-Path $PSScriptRoot "validate_markdown.py") $InputPath --max-columns $MaxColumns
 }
 
 $BaseName = [System.IO.Path]::GetFileNameWithoutExtension($InputPath)
 $TempDocx = Join-Path (Join-Path $Root ".tmp") ($BaseName + ".tmp.docx")
-$FinalDocx = Join-Path $OutputPath ($BaseName + "_飞书导入版.docx")
+$FinalDocx = Join-Path $OutputPath ($BaseName + (Get-FeishuSuffix) + ".docx")
 $InputDir = Split-Path -Parent $InputPath
 $AssetsDir = Join-Path $Root "assets"
 $ResourcePath = "$InputDir;$AssetsDir"
 
-Write-Host "[3/4] Pandoc 转换 Markdown → DOCX..." -ForegroundColor Cyan
+Write-Host "[3/4] Converting Markdown to DOCX with Pandoc..." -ForegroundColor Cyan
 pandoc $InputPath `
     --from="gfm+yaml_metadata_block" `
     --to=docx `
@@ -66,12 +85,12 @@ pandoc $InputPath `
     --resource-path=$ResourcePath `
     --output=$TempDocx
 
-Write-Host "[4/4] 自动美化表格、图片与代码块..." -ForegroundColor Cyan
+Write-Host "[4/4] Postprocessing tables, images, and code blocks..." -ForegroundColor Cyan
 python (Join-Path $PSScriptRoot "postprocess_docx.py") $TempDocx $FinalDocx --config $ConfigPath
 Remove-Item $TempDocx -Force -ErrorAction SilentlyContinue
 
-Write-Host "`n生成完成：$FinalDocx" -ForegroundColor Green
-Write-Host "在飞书云文档首页选择：上传及导入 → 导入为在线文档。" -ForegroundColor Yellow
+Write-Host "`nGenerated: $FinalDocx" -ForegroundColor Green
+Write-Host "In Feishu Docs, use Upload and Import, then import this DOCX as an online document." -ForegroundColor Yellow
 
 if ($Pdf) {
     $Soffice = Get-Command soffice -ErrorAction SilentlyContinue
@@ -83,9 +102,9 @@ if ($Pdf) {
         $Soffice = $Candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     }
     if ($Soffice) {
-        Write-Host "正在额外导出 PDF..." -ForegroundColor Cyan
+        Write-Host "Exporting PDF..." -ForegroundColor Cyan
         & $Soffice --headless --convert-to pdf --outdir $OutputPath $FinalDocx | Out-Host
     } else {
-        Write-Warning "未找到 LibreOffice，已跳过 PDF 导出。DOCX 不受影响。"
+        Write-Warning "LibreOffice was not found. PDF export skipped; DOCX output is unaffected."
     }
 }
