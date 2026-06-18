@@ -1,4 +1,4 @@
-# Compass 技术文档 Markdown 编写规范
+# md-publish-kit 技术文档 Markdown 编写规范
 
 ## 1. 文档头部必须包含 YAML 元数据
 

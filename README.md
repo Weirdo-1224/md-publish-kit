@@ -1,4 +1,4 @@
-# Compass 文档自动生成 Pipeline
+# md-publish-kit 文档自动生成 Pipeline
 
 这套 Pipeline 用于解决：**Markdown 中有大量表格，直接粘贴到飞书后样式难看、无法稳定编辑**。
 
@@ -19,7 +19,7 @@ DOCX 后处理
 ## 1. 目录结构
 
 ```text
-Compass_Doc_Pipeline/
+md-publish-kit/
 ├─ examples/
 │  └─ Compass_智能竞品分析平台.md             # 当前项目的完整 Markdown 示例
 ├─ assets/
@@ -58,7 +58,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 
 如果 Pandoc 刚安装完成，请关闭并重新打开 PowerShell，让 PATH 生效。
 
-## 3. 一键生成 Compass 文档
+## 3. 一键生成 md-publish-kit 文档
 
 最简单的方式是双击：
 
@@ -192,7 +192,7 @@ config/pipeline.json
 powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1 -RebuildTemplate
 ```
 
-## 9. 当前 Compass 文档的图片问题
+## 9. 当前 md-publish-kit 文档的图片问题
 
 原始 Markdown 中的架构图使用了类似下面的本机路径：
 
