@@ -1,0 +1,53 @@
+{
+  "document": {
+    "project_name": "COMPASS",
+    "header_text": "智能竞品分析平台",
+    "footer_text": "比赛提交技术文档 · V1.0",
+    "cover_page": true,
+    "page": {
+      "width_cm": 21.0,
+      "height_cm": 29.7,
+      "top_margin_cm": 2.25,
+      "bottom_margin_cm": 2.0,
+      "left_margin_cm": 2.2,
+      "right_margin_cm": 2.2
+    }
+  },
+  "theme": {
+    "primary": "1F4E78",
+    "accent": "2F80ED",
+    "light": "EAF3F8",
+    "band": "F6F8FA",
+    "text": "1F2328",
+    "muted": "5F6B76",
+    "border": "B7C8D6",
+    "white": "FFFFFF",
+    "code_bg": "F3F5F7"
+  },
+  "fonts": {
+    "body": "Microsoft YaHei",
+    "code": "Consolas",
+    "body_size_pt": 10.5,
+    "table_size_pt": 9.0,
+    "code_size_pt": 8.5
+  },
+  "tables": {
+    "max_columns_recommended": 5,
+    "cell_margin_dxa": 95,
+    "rules": [
+      {"headers": ["角色", "姓名"], "ratios": [0.68, 0.32], "align": ["left", "center"]},
+      {"headers": ["模块", "工作内容"], "ratios": [0.22, 0.78], "align": ["center", "left"]},
+      {"headers": ["#", "功能", "说明"], "ratios": [0.08, 0.28, 0.64], "align": ["center", "center", "left"]},
+      {"headers": ["层级", "技术", "版本", "用途"], "ratios": [0.18, 0.22, 0.14, 0.46], "align": ["center", "center", "center", "left"]},
+      {"headers": ["模型", "提供商", "协议", "用途"], "ratios": [0.24, 0.20, 0.25, 0.31], "align": ["center", "center", "center", "left"]},
+      {"headers": ["Agent", "中文名", "职责", "输入", "输出"], "ratios": [0.18, 0.13, 0.29, 0.18, 0.22], "align": ["center", "center", "left", "center", "center"]},
+      {"headers": ["维度", "完成情况"], "ratios": [0.24, 0.76], "align": ["center", "left"]},
+      {"headers": ["表名", "用途", "核心字段"], "ratios": [0.22, 0.25, 0.53], "align": ["center", "left", "left"]},
+      {"headers": ["方法", "路径", "说明"], "ratios": [0.14, 0.39, 0.47], "align": ["center", "left", "left"]}
+    ]
+  },
+  "images": {
+    "max_width_ratio": 0.92,
+    "center": true
+  }
+}
